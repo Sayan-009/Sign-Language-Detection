@@ -91,7 +91,7 @@ col1, col2 = st.columns([2, 1])
 
 with col1:
     webrtc_streamer(
-        key="sign-lang-final",
+        key="asl-presentation-v1",
         mode=WebRtcMode.SENDRECV,
         video_processor_factory=SignLanguageProcessor,
         rtc_configuration={
@@ -106,6 +106,11 @@ with col1:
         media_stream_constraints={
             "video": True,
             "audio": False
+        },
+        video_html_attrs={
+            "style": {"width": "100%"},
+            "controls": False,
+            "autoPlay": True,
         },
         async_processing=True,
     )
