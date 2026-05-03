@@ -1,0 +1,22 @@
+venv/
+__pycache__/
+
+
+
+# --- Python Environment ---
+venv/
+env/
+.env
+__pycache__/
+*.pyc
+
+# --- MediaPipe & System Files ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# --- Project Specific Data ---
+# If you have a folder with thousands of training images, ignore it to save space
+RAW_IMAGES/
+data.pickle
