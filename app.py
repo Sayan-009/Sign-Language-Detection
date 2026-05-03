@@ -91,13 +91,22 @@ col1, col2 = st.columns([2, 1])
 
 with col1:
     webrtc_streamer(
-        key="asl-main",
+        key="sign-lang-final",
         mode=WebRtcMode.SENDRECV,
         video_processor_factory=SignLanguageProcessor,
         rtc_configuration={
-            "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+            "iceServers": [
+                {"urls": ["stun:stun.l.google.com:19302"]},
+                {"urls": ["stun:stun1.l.google.com:19302"]},
+                {"urls": ["stun:stun2.l.google.com:19302"]},
+                {"urls": ["stun:stun3.l.google.com:19302"]},
+                {"urls": ["stun:stun4.l.google.com:19302"]}
+            ]
         },
-        media_stream_constraints={"video": True, "audio": False},
+        media_stream_constraints={
+            "video": True,
+            "audio": False
+        },
         async_processing=True,
     )
 
