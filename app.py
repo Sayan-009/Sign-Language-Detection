@@ -1,5 +1,5 @@
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer, WebRtcMode, VideoTransformerBase
+from streamlit_webrtc import webrtc_streamer, WebRtcMode, VideoProcessorBase
 import cv2
 import pickle
 import numpy as np
@@ -8,12 +8,13 @@ from mediapipe.python.solutions import hands as mp_hands
 from mediapipe.python.solutions import drawing_utils as mp_drawing
 from mediapipe.python.solutions import drawing_styles as mp_drawing_styles
 
-# Load the model
+# 1. Load the model
 model_dict = pickle.load(open('./sign_language_model.p', 'rb'))
 model = model_dict['model']
 
 
-class VideoTransformer(VideoTransformerBase):
+# 2. Updated Processor (Modern WebRTC approach)
+class SignLanguageProcessor(VideoProcessorBase):
     def __init__(self):
         self.hands = mp_hands.Hands(
             static_image_mode=False,
@@ -21,7 +22,7 @@ class VideoTransformer(VideoTransformerBase):
             min_detection_confidence=0.5
         )
 
-    def transform(self, frame):
+    def recv(self, frame):
         img = frame.to_ndarray(format="bgr24")
         img = cv2.flip(img, 1)
 
@@ -31,7 +32,7 @@ class VideoTransformer(VideoTransformerBase):
         if results.multi_hand_landmarks:
             hand = results.multi_hand_landmarks[0]
 
-            # Extraction logic matching your training
+            # Wrist-relative normalization (Matches your training)
             wrist_x = hand.landmark[0].x
             wrist_y = hand.landmark[0].y
             wrist_z = hand.landmark[0].z
@@ -45,20 +46,39 @@ class VideoTransformer(VideoTransformerBase):
             prediction = model.predict(np.asarray(temp_data).reshape(1, -1))
             predicted_character = chr(65 + int(prediction[0]))
 
-            cv2.putText(img, f"Prediction: {predicted_character}", (50, 50),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+            # Draw landmarks on screen
+            mp_drawing.draw_landmarks(
+                img, hand, mp_hands.HAND_CONNECTIONS,
+                mp_drawing_styles.get_default_hand_landmarks_style(),
+                mp_drawing_styles.get_default_hand_connections_style())
 
-        return img
+            cv2.putText(img, f"Prediction: {predicted_character}", (20, 50),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 255, 0), 3, cv2.LINE_AA)
+
+        return frame.from_ndarray(img, format="bgr24")
 
 
+# --- UI LAYOUT ---
 st.set_page_config(page_title="Sign Language AI", layout="centered")
 st.title("🤟 Real-time Sign Language Detector")
-st.write("This AI recognizes hand signs and translates them to text.")
+st.write("Hold your hand in front of the camera to translate signs.")
 
-webrtc_streamer(
-    key="example",
-    mode=WebRtcMode.SENDRECV,
-    video_transformer_factory=VideoTransformer,
-    rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
-    media_stream_constraints={"video": True, "audio": False},
-)
+# Centering the camera window
+col1, col2, col3 = st.columns([0.5, 3, 0.5])
+
+with col2:
+    webrtc_streamer(
+        key="sign-lang-main",
+        mode=WebRtcMode.SENDRECV,
+        video_processor_factory=SignLanguageProcessor,  # Using Processor instead of Transformer
+        rtc_configuration={
+            "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+        },
+        media_stream_constraints={
+            "video": True,
+            "audio": False
+        },
+        async_processing=True,
+    )
+
+st.info("Ensure you have allowed camera access in your browser settings.")
