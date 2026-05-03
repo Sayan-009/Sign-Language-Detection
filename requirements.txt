@@ -5,6 +5,4 @@ mediapipe==0.10.9
 numpy<2.0.0
 scikit-learn
 pandas
-matplotlib
-seaborn
 tornado<6.2
