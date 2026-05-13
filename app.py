@@ -8,7 +8,6 @@ import os
 
 
 # --- INITIALIZATION ---
-# Using st.cache_resource so the model only loads ONCE
 @st.cache_resource
 def load_model():
     model_path = './sign_language_model.p'
@@ -23,7 +22,7 @@ def get_mp_hands():
     return mp.solutions.hands.Hands(
         static_image_mode=False,
         max_num_hands=1,
-        min_detection_confidence=0.7,  # Slightly higher for stability
+        min_detection_confidence=0.7,
         min_tracking_confidence=0.5
     )
 
