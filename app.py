@@ -63,12 +63,6 @@ class SignLanguageProcessor(VideoProcessorBase):
                 prediction = model.predict(np.asarray(temp_data).reshape(1, -1))
                 predicted_character = chr(65 + int(prediction[0]))
 
-                # Draw landmarks
-                mp_drawing.draw_landmarks(
-                    img, hand, mp.solutions.hands.HAND_CONNECTIONS,
-                    mp_drawing_styles.get_default_hand_landmarks_style(),
-                    mp_drawing_styles.get_default_hand_connections_style())
-
                 cv2.putText(img, f"ASL: {predicted_character}", (20, 60),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 3, cv2.LINE_AA)
             except Exception:
